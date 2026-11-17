@@ -1,2 +1,2 @@
-# pharma-channel-ai
-pharmaceutical channel engagement
+# pharma-channel-risk-management
+pharmaceutical channel Risk Management
