@@ -1,0 +1,95 @@
+.env
+.venv/
+__pycache__/
+.vercel/
+.pytest_cache/
+
+# =====================================
+# Environment variables and secrets
+# =====================================
+.env
+.env.*
+!.env.example
+.streamlit/secrets.toml
+*.pem
+*.key
+credentials.json
+
+# =====================================
+# Python virtual environments
+# =====================================
+venv/
+.venv/
+env/
+ENV/
+
+# =====================================
+# Python cache and compiled files
+# =====================================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# =====================================
+# IDE and editor settings
+# =====================================
+.vscode/
+.idea/
+*.swp
+
+# =====================================
+# Testing and code coverage
+# =====================================
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# =====================================
+# Logs and temporary files
+# =====================================
+*.log
+*.tmp
+*.temp
+logs/
+temp/
+
+# =====================================
+# Jupyter Notebook
+# =====================================
+.ipynb_checkpoints/
+
+# =====================================
+# Build and distribution files
+# =====================================
+build/
+dist/
+*.egg-info/
+
+# =====================================
+# Operating system files
+# =====================================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# =====================================
+# Deployment
+# =====================================
+.vercel/
+
+# =====================================
+# Local databases and checkpoints
+# =====================================
+*.db
+*.sqlite
+*.sqlite3
+checkpoints/
+
+# =====================================
+# Generated reports
+# =====================================
+outputs/
+reports/generated/
