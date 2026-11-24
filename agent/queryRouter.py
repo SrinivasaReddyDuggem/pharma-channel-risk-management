@@ -5,8 +5,9 @@ def query_router(state: PharmaState):
     routes = {
         "shortage": "shortage_risk",
         "expiry": "expiry_risk",
-        "oversupply": "oversupply_risk"
-       # "allocation": "allocation_risk"
+        "oversupply": "oversupply_risk",
+        "claims": "claim_risk"
+  
     }
 
     selected = state.get("analysis_types", [])

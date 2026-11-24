@@ -7,7 +7,8 @@ def understand_query(state: PharmaState) -> dict:
     allowed = {
         "shortage",
         "expiry",
-        "oversupply"
+        "oversupply",
+        "claims"
     }
 
     return {

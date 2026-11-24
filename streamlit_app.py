@@ -22,13 +22,15 @@ st.set_page_config(
 RISK_OPTIONS = {
     "Shortage": "shortage",
     "Expiry": "expiry",
-    "Oversupply": "oversupply"
+    "Oversupply": "oversupply",
+    "Expiry Claims & Settlement": "claims"
 }
 
 RESULT_KEYS = {
     "shortage": "shortage_results",
     "expiry": "expiry_risks",
-    "oversupply": "oversupply_risks"
+    "oversupply": "oversupply_risks",
+    "claims": "claim_results"
 }
 
 VALIDATION_KEYS = {
@@ -46,7 +48,8 @@ RISK_COLUMNS = {
     ],
     "oversupply": [
         "oversupply_risk", "risk_level", "risk"
-    ]
+    ],
+    "claims": []
 }
 
 RISK_COLORS = {
@@ -320,6 +323,50 @@ def show_financial_impact(result):
         )
 
 # ============================================================
+# CLAIMS AND DELAYED SETTLEMENT SUMMARY
+# ============================================================
+
+def show_claims_summary(result):
+    summary = result.get("claim_summary") or {}
+    delayed = result.get("settlement_results") or []
+    st.header("Expiry Claims & Delayed Settlement")
+    st.caption(
+        "Expired/near-expiry claims, evidence flags, and settlement monitoring. "
+        "Threshold is a pilot alert, not a confirmed contractual SLA."
+    )
+    if not summary:
+        st.warning("Claim summary missing. Check claims node routing and PharmaState.")
+        return
+    st.caption(
+        f"Reporting as of {summary.get('as_of_date', 'N/A')} | "
+        f"Monitoring threshold: {summary.get('monitor_threshold_days', 'N/A')} days"
+    )
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("Expiry claim rows", summary.get("total_claim_rows", 0))
+    c2.metric("Pending claims", summary.get("pending_rows", 0))
+    c3.metric("Pending over threshold", summary.get("pending_over_threshold_rows", 0))
+    c4.metric("Credited over threshold", summary.get("delayed_credited_rows", 0))
+    avg = summary.get("average_settlement_days")
+    st.metric("Average credited settlement", f"{avg} days" if avg is not None else "N/A")
+    st.caption("Row counts can include repeated claim IDs; potential duplicates require review.")
+    st.subheader("Settlement exceptions")
+    if delayed:
+        df = clean_table(delayed)
+        st.dataframe(df, hide_index=True, width="stretch")
+        st.download_button("Download settlement exceptions",
+            df.to_csv(index=False).encode("utf-8"),
+            file_name="claim_settlement_exceptions.csv", mime="text/csv",
+            key="claim_settlement_export")
+    else:
+        st.info("No settlement exceptions returned.")
+    with st.expander("Claim evidence & monitoring notes"):
+        st.write("Rows with evidence flags:", summary.get("flagged_rows", 0))
+        st.write("Distinct claim numbers:", summary.get("distinct_claim_numbers", 0))
+        for note in result.get("claim_warnings") or []:
+            st.warning(note)
+
+
+# ============================================================
 # 7. PAGE HEADER
 # ============================================================
 
@@ -332,8 +379,8 @@ st.caption(
 )
 
 st.markdown(
-    "Analyze stock shortages, expiry exposure, and "
-    "oversupply across C&F locations."
+    "Analyze stock shortages, expiry exposure, oversupply, "
+    "and expiry-claim settlement across C&F locations."
 )
 
 # ============================================================
@@ -491,6 +538,10 @@ if result is not None:
     ):
         show_financial_impact(result)
 
+        st.divider()
+
+    if "claims" in selected_risks:
+        show_claims_summary(result)
         st.divider()
 
     # --------------------------------------------------------

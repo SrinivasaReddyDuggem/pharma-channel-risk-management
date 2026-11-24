@@ -63,6 +63,13 @@ class PharmaState(TypedDict, total=False):
     # 7. FINAL RESPONSE
     final_answer: str
     recommendations: list
+    
+    # Expiry claims and settlement analysis
+    claim_results: list[dict]
+    settlement_results: list[dict]
+    claim_summary: dict
+    claim_warnings: list[str]
+
 
 
     # 9. Error handling
