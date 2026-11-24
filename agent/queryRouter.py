@@ -6,7 +6,8 @@ def query_router(state: PharmaState):
         "shortage": "shortage_risk",
         "expiry": "expiry_risk",
         "oversupply": "oversupply_risk",
-        "claims": "claim_risk"
+        "claims": "claim_risk",
+         "redistribution": "redistribution_risk",
   
     }
 

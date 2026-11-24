@@ -23,14 +23,16 @@ RISK_OPTIONS = {
     "Shortage": "shortage",
     "Expiry": "expiry",
     "Oversupply": "oversupply",
-    "Expiry Claims & Settlement": "claims"
+    "Expiry Claims & Settlement": "claims",
+    "Redistribution Delay": "redistribution"
 }
 
 RESULT_KEYS = {
     "shortage": "shortage_results",
     "expiry": "expiry_risks",
     "oversupply": "oversupply_risks",
-    "claims": "claim_results"
+    "claims": "claim_results",
+    "redistribution": "redistribution_results"
 }
 
 VALIDATION_KEYS = {
@@ -49,7 +51,8 @@ RISK_COLUMNS = {
     "oversupply": [
         "oversupply_risk", "risk_level", "risk"
     ],
-    "claims": []
+    "claims": [],
+    "redistribution": []
 }
 
 RISK_COLORS = {
@@ -396,6 +399,53 @@ def show_claims_summary(result):
 
 
 # ============================================================
+# REDISTRIBUTION FRICTION (not allocation)
+# ============================================================
+
+def show_redistribution_summary(result):
+    st.header("Slow Redistribution — Exposure Screening")
+    summary = result.get("redistribution_summary") or {}
+    rows = result.get("redistribution_results")
+    st.caption(
+        "Identify a shortage at one C&F when another has surplus of the same SKU. "
+        "This does not calculate or approve stock transfers."
+    )
+    if rows is None:
+        st.error("Redistribution results missing from LangGraph. Check routing and PharmaState.")
+        return
+    if summary:
+        st.caption(
+            f"Stock snapshot: {summary.get('snapshot_date', 'N/A')} | "
+            f"Hypothetical delay: {summary.get('scenario_days', 'N/A')} days"
+        )
+        a, b, c = st.columns(3)
+        a.metric("Affected C&F × SKU pairs", summary.get("impacted_receiver_locations", 0))
+        b.metric("Affected SKUs", summary.get("affected_skus", 0))
+        c.metric("Uncovered demand in scenario (packs)",
+                 f"{summary.get('uncovered_demand_scenario_packs', 0):,}")
+    st.info(
+        "Actual redistribution duration is unavailable because transfer request, "
+        "approval, dispatch and receipt timestamps are not in the source data. "
+        "14 days is a scenario, NOT measured turnaround or an approved SLA."
+    )
+    if rows:
+        df = clean_table(rows)
+        st.subheader("Locations needing redistribution investigation")
+        st.dataframe(df, hide_index=True, width="stretch")
+        st.download_button("Download redistribution bottleneck report",
+                           data=df.to_csv(index=False).encode("utf-8"),
+                           file_name="redistribution_bottlenecks.csv",
+                           mime="text/csv", key="redistribution_export")
+    else:
+        st.warning("No matching cross-location shortage/surplus patterns were returned.")
+    with st.expander("Assumptions and data quality"):
+        for warning in result.get("redistribution_warnings") or []:
+            st.warning(str(warning))
+        if summary:
+            st.json(summary)
+
+
+# ============================================================
 # 7. PAGE HEADER
 # ============================================================
 
@@ -409,7 +459,7 @@ st.caption(
 
 st.markdown(
     "Analyze stock shortages, expiry exposure, oversupply, "
-    "and expiry-claim settlement across C&F locations."
+    "expiry-claim settlement and redistribution bottlenecks across C&F locations."
 )
 
 # ============================================================
@@ -571,6 +621,10 @@ if result is not None:
 
     if "claims" in selected_risks:
         show_claims_summary(result)
+        st.divider()
+
+    if "redistribution" in selected_risks:
+        show_redistribution_summary(result)
         st.divider()
 
     # --------------------------------------------------------

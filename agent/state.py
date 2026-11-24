@@ -72,7 +72,10 @@ class PharmaState(TypedDict, total=False):
     # 8. Duplicate and invalid claims analysis
     duplicate_invalid_claims: list[dict]
 
-
+    #Slow redistribution between locations
+    redistribution_results: list[dict]
+    redistribution_summary: dict
+    redistribution_warnings: list[str]
 
     # 9. Error handling
     error: str
