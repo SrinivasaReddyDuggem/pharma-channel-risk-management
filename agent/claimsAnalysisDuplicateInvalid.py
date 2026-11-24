@@ -84,6 +84,7 @@ def expiry_claims_analysis(state: dict) -> dict:
     if not selected:
         return {
             "claim_results": [], "settlement_results": [],
+            "duplicate_invalid_claims": [],
             "claim_warnings": ["No Expired or Near expiry claims were loaded."],
             "claim_summary": {"total_claim_rows": 0, "as_of_date": None},
         }
@@ -118,6 +119,33 @@ def expiry_claims_analysis(state: dict) -> dict:
         text = f"{email.get('subject') or ''} {email.get('body') or ''}"
         for ref in set(re.findall(r"CLM-\d{4}-\d+", text, flags=re.IGNORECASE)):
             email_refs[_code(ref)].append(_code(email.get("email_id")))
+
+    # Cross-claim totals are review signals, not conclusive proof of fraud.
+    claimed_by_invoice_item = defaultdict(Decimal)
+    claim_groups_by_invoice_item = defaultdict(list)
+    for src in selected:
+        ref = _code(src.get("original_invoice_ref"))
+        key = (ref, _code(src.get("stockist_code")), _code(src.get("sku_code")), _code(src.get("batch_no")))
+        amount_qty = _number(src.get("qty_claimed"))
+        if ref and amount_qty is not None and amount_qty > 0:
+            claim_groups_by_invoice_item[key].append(src)
+            claimed_by_invoice_item[key] += amount_qty
+
+    # Separate duplicate signals from invalid or missing evidence.
+    # A repeated row is still counted in raw records, and never auto-rejected.
+    DUPLICATE_FLAGS = {"repeated_claim_number", "possible_duplicate_claim", "cumulative_claim_quantity_exceeds_invoice"}
+    INVALID_FLAGS = {
+        "invalid_claim_date", "claim_after_reporting_date", "invalid_claim_quantity",
+        "missing_or_invalid_claim_value", "batch_missing_or_ambiguous",
+        "missing_or_invalid_expiry_date", "claimed_expiry_mismatch",
+        "stockist_missing_or_ambiguous", "cnf_differs_from_current_stockist_master",
+        "invoice_reference_not_found", "invoice_stockist_sku_batch_mismatch",
+        "claimed_quantity_exceeds_matched_invoice", "credit_before_claim",
+        "credit_after_reporting_date", "credited_without_complete_credit_note",
+        "missing_credit_value", "credit_value_differs_from_claim",
+        "pending_with_credit_note", "unrecognized_claim_status",
+    }
+    INCOMPLETE_FLAGS = {"missing_claim_number", "missing_invoice_reference"}
 
     results = []
     for row in selected:
@@ -185,6 +213,14 @@ def expiry_claims_analysis(state: dict) -> dict:
                                          (_number(x.get("free_qty")) or Decimal(0)) for x in matching)
                     if qty is not None and qty > delivery_total:
                         flags.append("claimed_quantity_exceeds_matched_invoice")
+                    claim_group_key = (ref, stockist, sku, batch)
+                    # Summed quantities may legitimately include partial returns;
+                    # compare to invoice line quantity as a review flag only.
+                    if (
+                        len(claim_groups_by_invoice_item.get(claim_group_key, [])) > 1
+                        and claimed_by_invoice_item[claim_group_key] > delivery_total
+                    ):
+                        flags.append("cumulative_claim_quantity_exceeds_invoice")
 
         if claim_id_counts[claim_no] > 1 and claim_no:
             flags.append("repeated_claim_number")
@@ -217,6 +253,21 @@ def expiry_claims_analysis(state: dict) -> dict:
             settlement_status = "unknown_status"
             flags.append("unrecognized_claim_status")
 
+        all_flags = sorted(set(flags))
+        duplicate_flags = sorted(set(flags) & DUPLICATE_FLAGS)
+        invalid_flags = sorted(set(flags) & INVALID_FLAGS)
+        missing_evidence_flags = sorted(set(flags) & INCOMPLETE_FLAGS)
+        if duplicate_flags and (invalid_flags or missing_evidence_flags):
+            review_category = "duplicate_and_evidence_issue"
+        elif duplicate_flags:
+            review_category = "potential_duplicate"
+        elif invalid_flags:
+            review_category = "invalid_evidence"
+        elif missing_evidence_flags:
+            review_category = "incomplete_evidence"
+        else:
+            review_category = "no_detected_exception"
+
         results.append({
             "claim_no": claim_no, "claim_date": cdate.isoformat() if cdate else None,
             "claim_type": _code(row.get("claim_type")), "stockist_code": stockist,
@@ -228,11 +279,23 @@ def expiry_claims_analysis(state: dict) -> dict:
             "credit_value_inr": float(credit_amount) if credit_amount is not None else None,
             "settlement_days": elapsed, "age_days": age,
             "settlement_status": settlement_status, "monitor_threshold_days": threshold,
-            "validation_flags": sorted(set(flags)), "evidence": evidence,
+            "validation_flags": all_flags,
+            "duplicate_flags": duplicate_flags,
+            "invalid_flags": invalid_flags,
+            "missing_evidence_flags": missing_evidence_flags,
+            "review_category": review_category,
+            "evidence": evidence,
             "followup_email_ids": sorted(set(email_refs.get(claim_no, []))),
             "decision": "manual_review" if flags else "evidence_checks_passed_not_policy_approved",
         })
 
+    duplicate_invalid = [
+        r for r in results if r["review_category"] != "no_detected_exception"
+    ]
+    review_counts = Counter(r["review_category"] for r in results)
+    flag_counts = Counter(
+        flag for r in results for flag in r["validation_flags"]
+    )
     status_count = Counter(x["settlement_status"] for x in results)
     flagged = sum(bool(x["validation_flags"]) for x in results)
     settlement = [x for x in results if x["settlement_status"] in ("credited_delayed", "pending_over_threshold", "credited_unverifiable")]
@@ -245,14 +308,23 @@ def expiry_claims_analysis(state: dict) -> dict:
         "pending_over_threshold_rows": status_count["pending_over_threshold"],
         "average_settlement_days": round(sum(settled_days) / len(settled_days), 1) if settled_days else None,
         "settlement_status_counts": dict(status_count),
+        "potential_duplicate_rows": sum(bool(r["duplicate_flags"]) for r in results),
+        "invalid_evidence_rows": sum(bool(r["invalid_flags"]) for r in results),
+        "incomplete_evidence_rows": sum(bool(r["missing_evidence_flags"]) for r in results),
+        "duplicate_invalid_review_rows": len(duplicate_invalid),
+        "review_category_counts": dict(review_counts),
+        "validation_flag_counts": dict(flag_counts),
     }
     return {
         "claim_results": results, "settlement_results": settlement,
+        "duplicate_invalid_claims": duplicate_invalid,
         "claim_summary": summary,
         "claim_warnings": [
             "Only Expired and Near expiry claims are included; other claim types are excluded.",
             "The delay threshold is a pilot monitoring rule, not a verified contractual SLA.",
             "A matching invoice/batch is evidence only; claim eligibility and policy windows require approved policy rules.",
+            "Repeated claim numbers and invoice-line overlaps are review signals, not proven fraud or duplicate payments.",
+            "Claims with missing invoice references need document reconciliation, not automatic rejection.",
             "Repeated source rows are flagged, not automatically removed or rejected.",
             "Email links require an explicit claim number; unlinked emails must be reviewed separately.",
         ],

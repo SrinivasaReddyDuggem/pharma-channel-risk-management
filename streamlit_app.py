@@ -359,6 +359,35 @@ def show_claims_summary(result):
             key="claim_settlement_export")
     else:
         st.info("No settlement exceptions returned.")
+    st.subheader("Duplicate and Invalid Expiry Claims")
+    review = result.get("duplicate_invalid_claims")
+    if review is None:
+        st.warning("Duplicate/invalid review output is missing. Update claimsAnalysis.py and PharmaState.")
+    else:
+        a, b, c, d = st.columns(4)
+        a.metric("Potential duplicate rows", summary.get("potential_duplicate_rows", 0))
+        b.metric("Invalid evidence rows", summary.get("invalid_evidence_rows", 0))
+        c.metric("Incomplete evidence rows", summary.get("incomplete_evidence_rows", 0))
+        d.metric("Total review rows", summary.get("duplicate_invalid_review_rows", 0))
+        if review:
+            review_df = clean_table(review)
+            categories = sorted(review_df["review_category"].unique().tolist())
+            chosen = st.multiselect(
+                "Filter review category", categories, default=categories,
+                key="claim_review_categories"
+            )
+            review_df = review_df[review_df["review_category"].isin(chosen)]
+            st.dataframe(review_df, hide_index=True, width="stretch")
+            st.download_button(
+                "Download duplicate and invalid claim review CSV",
+                review_df.to_csv(index=False).encode("utf-8"),
+                file_name="expiry_claim_duplicate_invalid_review.csv", mime="text/csv",
+                key="claim_review_export"
+            )
+        else:
+            st.info("No duplicate or invalid evidence signals detected.")
+    st.caption("Flags require manual investigation; none automatically rejects or approves a claim.")
+
     with st.expander("Claim evidence & monitoring notes"):
         st.write("Rows with evidence flags:", summary.get("flagged_rows", 0))
         st.write("Distinct claim numbers:", summary.get("distinct_claim_numbers", 0))

@@ -69,6 +69,8 @@ class PharmaState(TypedDict, total=False):
     settlement_results: list[dict]
     claim_summary: dict
     claim_warnings: list[str]
+    # 8. Duplicate and invalid claims analysis
+    duplicate_invalid_claims: list[dict]
 
 
 

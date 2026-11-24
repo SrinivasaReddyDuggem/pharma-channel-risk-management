@@ -12,7 +12,7 @@ from agent.combineResults import combine_results
 from agent.recommendationAgent import recommendation_agent
 from agent.finalResponse import final_response
 from agent.financialImpact import calculate_financial_impact
-from agent.claimsAnalysis import claim_risk
+from agent.claimsAnalysisDuplicateInvalid import claim_risk
 
 
 # ============================================
