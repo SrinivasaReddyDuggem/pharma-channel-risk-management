@@ -1,0 +1,786 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PharmaGuard AI — Beginner's Project Guide</title>
+<style>
+:root {--blue:#2563eb;--teal:#0f766e;--purple:#7c3aed;--ink:#17243b;--muted:#53657d;--edge:#d7e4ef;--paper:#ffffff;--bg:#f3f7fb;--amber:#92400e}
+*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 'Segoe UI',Inter,Arial,sans-serif} .wrap{max-width:1120px;margin:0 auto;padding:40px 28px 72px;background:#fff;box-shadow:0 14px 45px #132b4b12;min-height:100vh}
+h1,h2,h3,h4{font-family:'Trebuchet MS','Segoe UI',Arial,sans-serif;letter-spacing:-.025em;line-height:1.24}h1{font-size:2.8rem;color:#14385c;margin:20px 0} h2{font-size:1.65rem;color:#164e81;margin-top:50px;padding-bottom:12px;border-bottom:3px solid #cde6f7}h3{font-size:1.28rem;color:#0f766e;margin-top:30px}h4{color:var(--purple)}p{margin:10px 0 18px} a{color:#145abc;text-underline-offset:3px} a:hover{color:#0b418f} blockquote{margin:24px 0;border-left:5px solid #f59e0b;background:#fffbeb;padding:14px 22px;color:#654320;border-radius:0 12px 12px 0}blockquote p:last-child{margin-bottom:0}strong{color:#1c3862}hr{border:0;border-top:1px solid #d6e4ee;margin:32px 0}table{width:100%;border-collapse:collapse;font-size:.9rem;display:block;overflow-x:auto;margin:15px 0 26px}th{background:#173e68;color:white;font-weight:650;text-align:left}th,td{border:1px solid #dbe6ef;padding:10px 13px;vertical-align:top}tr:nth-child(even) td{background:#f0f7fb}code{font: .91em/1.5 Consolas,'Courier New',monospace;background:#eff3fb;color:#622c94;border-radius:4px;padding:1px 5px}pre{border-radius:12px;background:#12253e;padding:22px;overflow:auto;color:#d4e6ff;line-height:1.55}pre code{background:none;color:inherit;padding:0}li{margin:4px 0}ul,ol{padding-left:24px}li::marker{color:#2972be} img{max-width:100%;height:auto} .topnav{position:sticky;top:0;background:#133b61;color:#fff;padding:10px 15px;margin:-40px -28px 30px;z-index:2;font-size:.86rem;letter-spacing:.04em}.topnav a{color:#fff} .foot{margin-top:40px;font-size:.85rem;color:#52657d} @media print{body{background:white}.wrap{padding:0;box-shadow:none} .topnav{display:none} pre,blockquote,table{break-inside:avoid}h2,h3{break-after:avoid}}@media(max-width:600px){.wrap{padding:25px 17px}.topnav{margin:-25px -17px 22px}h1{font-size:2.1rem}h2{font-size:1.35rem}}
+</style></head><body><main class="wrap"><div class="topnav">💊 PharmaGuard AI &nbsp; | &nbsp; Project Sankalp — Learning Guide</div><div align="center">
+
+<h1>💊 PharmaGuard AI</h1>
+<h3>Project Sankalp · Pharmaceutical Inventory &amp; Claims Risk Intelligence</h3>
+<p><strong>A beginner-friendly guide to the exact LangGraph workflow, every node, state field, calculation, output, and dashboard</strong></p>
+<p><img src="https://img.shields.io/badge/Python-Analysis-3776AB?style=for-the-badge&amp;logo=python&amp;logoColor=white" alt="Python" /> <img src="https://img.shields.io/badge/LangGraph-Workflow-7C3AED?style=for-the-badge" alt="LangGraph" /> <img src="https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?style=for-the-badge&amp;logo=streamlit&amp;logoColor=white" alt="Streamlit" /></p>
+<p><img src="https://img.shields.io/badge/6_Analysis_Types-Enabled-16A34A?style=flat-square" alt="Status" /> <img src="https://img.shields.io/badge/Allocation-Paused-F59E0B?style=flat-square" alt="Allocation" /> <img src="https://img.shields.io/badge/Decisions-Human_Review_Required-DC2626?style=flat-square" alt="Trust" /></p>
+</div>
+
+<blockquote>
+<p><strong>Project purpose:</strong> Help supply-chain and claims teams identify medicine expiry, stock shortages, surplus inventory, expiry-claim issues, redistribution friction, and unusual primary-sales patterns. The system analyzes CSV evidence and <strong>suggests</strong> investigation and action; it does not autonomously move medicines, settle claims, or approve payments.</p>
+</blockquote>
+<blockquote>
+<p><strong>Source accuracy:</strong> This guide reflects the graph and state described in this project, plus the available source files for <code>claimsAnalysisDuplicateInvalid</code> (uploaded implementation under an alternate filename), <code>redistrutionRisk</code> (available implementation under <code>redistributionRisk.py</code>), <code>demandForecastRisk</code>, and Streamlit. Source files for some older inventory and downstream nodes were <strong>not available for direct inspection</strong>. Their roles are described using the graph and state contract you supplied; exact formulas must be verified in your local code. <em>Do not copy the illustrative examples as real company results.</em></p>
+</blockquote>
+<hr />
+<h2>🧭 Table of contents</h2>
+<ol>
+<li><a href="#-1-the-business-problem">The business problem</a></li>
+<li><a href="#-2-words-to-know">Words to know</a></li>
+<li><a href="#-3-your-exact-graph">Your exact graph</a></li>
+<li><a href="#-4-complete-node-by-node-guide">Complete node-by-node guide</a></li>
+<li><a href="#-5-state-fields-who-writes-and-reads-them">State fields: who writes and reads them</a></li>
+<li><a href="#-6-how-each-analysis-works">How each analysis works</a></li>
+<li><a href="#-7-combining-financial-impact-and-ai-recommendations">Combining, financial impact and AI recommendations</a></li>
+<li><a href="#-8-the-streamlit-dashboard">The Streamlit dashboard</a></li>
+<li><a href="#-9-run-and-test-the-application">Run and test the application</a></li>
+<li><a href="#-10-examples-warnings-and-troubleshooting">Examples, warnings and troubleshooting</a></li>
+<li><a href="#-11-limitations-safeguards-and-future-work">Limitations, safeguards and future work</a></li>
+</ol>
+<hr />
+<h2>🎯 1. The business problem</h2>
+<p>A pharmaceutical company may have <strong>too much of a medicine at one C&amp;F</strong>, <strong>too little at another</strong>, or stock that may expire soon. In addition, expiry-return claims can require documentation checks and may take too long to settle. Planners also need to understand why primary invoicing varies from historical patterns.</p>
+<p><strong>C&amp;F</strong> means <em>Carrying and Forwarding agent</em>: a distribution location that stores or handles medicines. <strong>SKU</strong> means <em>Stock Keeping Unit</em>: a unique medicine/product identifier. <strong>Batch</strong> means a manufacturing lot, often sharing an expiry date.</p>
+<table>
+<thead>
+<tr>
+  <th>Business question</th>
+  <th>Our analysis</th>
+  <th>Typical output</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Which medicine batches may expire?</td>
+  <td><strong>Expiry</strong></td>
+  <td>Batch/location-level expiry risk</td>
+</tr>
+<tr>
+  <td>Where might inventory run out?</td>
+  <td><strong>Shortage</strong></td>
+  <td>Low-stock or low-coverage findings</td>
+</tr>
+<tr>
+  <td>Where is inventory higher than needed?</td>
+  <td><strong>Oversupply</strong></td>
+  <td>Excess-stock findings</td>
+</tr>
+<tr>
+  <td>Which expiry claims need investigation or follow-up?</td>
+  <td><strong>Claims</strong></td>
+  <td>Settlement delays, evidence exceptions, potential duplicates</td>
+</tr>
+<tr>
+  <td>Where does inventory appear stranded across locations?</td>
+  <td><strong>Redistribution</strong></td>
+  <td>Shortage/surplus overlap and <em>scenario-based</em> exposure</td>
+</tr>
+<tr>
+  <td>Where is primary invoicing hard to predict?</td>
+  <td><strong>Forecast</strong></td>
+  <td>Backtested forecast error by C&amp;F, SKU and month</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Remember:</strong> The dashboard provides <em>decision support</em>, not automatic operational decisions.</p>
+<h2>📘 2. Words to know</h2>
+<table>
+<thead>
+<tr>
+  <th>Term</th>
+  <th>Beginner explanation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><strong>Node</strong></td>
+  <td>A Python function that completes one step in the workflow.</td>
+</tr>
+<tr>
+  <td><strong>Edge</strong></td>
+  <td>A connection telling LangGraph which node runs next.</td>
+</tr>
+<tr>
+  <td><strong>State (<code>PharmaState</code>)</strong></td>
+  <td>Shared dictionary-like data passed between nodes.</td>
+</tr>
+<tr>
+  <td><strong>Sequential</strong></td>
+  <td>Run one step after the previous step.</td>
+</tr>
+<tr>
+  <td><strong>Conditional routing</strong></td>
+  <td>Pick a path based on the user's selected analysis.</td>
+</tr>
+<tr>
+  <td><strong>Parallel</strong></td>
+  <td>Run multiple selected risk-analysis nodes in the same graph step.</td>
+</tr>
+<tr>
+  <td><strong>Deterministic Python</strong></td>
+  <td>Code applies defined rules; the result does not depend on LLM creativity.</td>
+</tr>
+<tr>
+  <td><strong>LLM</strong></td>
+  <td>Large Language Model; here it explains findings and proposes evidence-based actions.</td>
+</tr>
+<tr>
+  <td><strong>PTS</strong></td>
+  <td>Price to stockist, used by existing financial calculations where applicable.</td>
+</tr>
+<tr>
+  <td><strong>Primary sales</strong></td>
+  <td>Product invoicing into the trade channel, <strong>not</strong> necessarily final customer demand.</td>
+</tr>
+<tr>
+  <td><strong>Exposure</strong></td>
+  <td>A value potentially at risk; <strong>not</strong> necessarily a realized loss or savings.</td>
+</tr>
+<tr>
+  <td><strong>WAPE</strong></td>
+  <td>Weighted Absolute Percentage Error, a summary of forecast errors.</td>
+</tr>
+</tbody>
+</table>
+<h2>🕸️ 3. Your exact graph</h2>
+<p>This diagram preserves <strong>the node names and connections you supplied</strong>. Allocation is intentionally absent.</p>
+<pre><code class="language-mermaid">flowchart TD
+    S([START]) --&gt; U[understand_query]
+    U --&gt; L[load_data]
+    L --&gt; V[validate_stock]
+    V --&gt; R{query_router}
+    R --&gt;|shortage| SH[shortage_risk]
+    R --&gt;|expiry| EX[expiry_risk]
+    R --&gt;|oversupply| OV[oversupply_risk]
+    R --&gt;|claims| CL[claim_risk]
+    R --&gt;|redistribution| RE[redistribution_risk]
+    R --&gt;|forecast| FC[demand_forecast_risk]
+    R --&gt;|unsupported| NO[unsupported_analysis]
+    SH --&gt; C[combine_results]
+    EX --&gt; C
+    OV --&gt; C
+    CL --&gt; C
+    RE --&gt; C
+    FC --&gt; C
+    C --&gt; FI[financial_impact]
+    FI --&gt; RA[recommendation_agent]
+    RA --&gt; FR[final_response]
+    FR --&gt; E([END])
+    NO --&gt; E
+    classDef input fill:#DBEAFE,stroke:#2563EB,color:#1E3A8A;
+    classDef risk fill:#DCFCE7,stroke:#16A34A,color:#14532D;
+    classDef ai fill:#F3E8FF,stroke:#9333EA,color:#581C87;
+    classDef caution fill:#FEF3C7,stroke:#D97706,color:#78350F;
+    class U,L,V,R input;
+    class SH,EX,OV,CL,RE,FC risk;
+    class RA,FR ai;
+    class NO caution;
+</code></pre>
+<p><strong>Execution sequence:</strong> <code>understand_query → load_data → validate_stock → router → selected analysis branch(es) → combine_results → financial_impact → recommendation_agent → final_response</code>.</p>
+<p>✅ <strong>Sequential:</strong> load and validate once.<br />
+🟢 <strong>Conditional:</strong> <code>query_router</code> chooses the requested analyses.<br />
+🟣 <strong>Parallel:</strong> several selected analysis nodes can run together.<br />
+🟠 <strong>LLM:</strong> only the recommendation node is confirmed by shared code to call an LLM. Whether <code>final_response</code> does so must be checked in its local source.</p>
+<p><strong>Important naming rule:</strong> Streamlit and the router use selection keys <code>expiry</code>, <code>shortage</code>, <code>oversupply</code>, <code>claims</code>, <code>redistribution</code>, <code>forecast</code>. These are <em>not</em> identical to all graph node names. For instance, <code>claims</code> routes to <code>claim_risk</code>, and <code>forecast</code> routes to <code>demand_forecast_risk</code>. Using <code>claim</code> or <code>demand_forecast</code> as input can silently remove the selection if <code>understand_query</code> filters unsupported names.</p>
+<hr />
+<h2>🧩 4. Complete node-by-node guide</h2>
+<h3>🔵 Node 1 — <code>understand_query</code></h3>
+<p><strong>File:</strong> <code>agent/understandQuery.py</code> · <strong>Type:</strong> Plain Python · <strong>Job:</strong> Check which analyses the user requested.</p>
+<ul>
+<li><strong>Reads:</strong> <code>analysis_types</code> from Streamlit.</li>
+<li><strong>Does:</strong> Keeps supported selection names; removes repeated or unsupported options.</li>
+<li><strong>Writes:</strong> <code>analysis_types</code>.</li>
+<li><strong>Example:</strong> <code>['expiry', 'claims', 'claims']</code> becomes <code>['expiry', 'claims']</code>.</li>
+<li><strong>Why it matters:</strong> Prevents invalid or duplicate analysis paths. It does <strong>not</strong> interpret the question with an LLM in your shared implementation.</li>
+</ul>
+<h3>🔵 Node 2 — <code>load_data</code></h3>
+<p><strong>File:</strong> <code>agent/loadData.py</code> · <strong>Type:</strong> Python + existing CSV loader tools · <strong>Job:</strong> Load factual evidence.</p>
+<ul>
+<li><strong>Reads:</strong> Files under the project's data location, through the existing loader functions.</li>
+<li><strong>Writes:</strong> <code>stock</code>, <code>claims</code>, <code>sales</code>, <code>stockists</code>, <code>skus</code>, <code>batches</code>, <code>claim_emails</code>.</li>
+<li><strong>Does not do:</strong> Predict demand, calculate settlement, or invent stock quantities.</li>
+<li><strong>Expected data:</strong> See <a href="#input-data-and-their-fields">input data</a>.</li>
+</ul>
+<h3>🔵 Node 3 — <code>validate_stock</code></h3>
+<p><strong>File:</strong> <code>agent/validateStock.py</code> · <strong>Type:</strong> Deterministic Python · <strong>Job:</strong> Decide which stock records are safe to use for each inventory risk calculation.</p>
+<ul>
+<li><strong>Reads:</strong> Primarily <code>stock</code> and <code>batches</code>.</li>
+<li><strong>Writes:</strong> <code>valid_expiry_stock</code>, <code>valid_shortage_stock</code>, <code>valid_oversupply_stock</code>, <code>invalid_stock</code>, <code>validation_summary</code>.</li>
+<li><strong>Checks reported in shared code:</strong> Numeric quantities, snapshot/expiry dates, identifiers, duplicate batch rows, batch-master consistency and monthly-demand consistency.</li>
+<li><strong>Result:</strong> Valid record lists for each inventory risk, plus excluded records and reasons.</li>
+<li><strong>Why it matters:</strong> Bad input can create false shortage, excess or expiry alerts.</li>
+</ul>
+<p><strong>Note:</strong> Claims and forecast are separate data domains; this stock validator does not establish that claim documents or sales records are valid.</p>
+<h3>🔷 Router — <code>query_router</code></h3>
+<p><strong>File:</strong> <code>agent/queryRouter.py</code> · <strong>Type:</strong> Conditional Python function · <strong>Job:</strong> Choose analysis nodes.</p>
+<ul>
+<li><strong>Reads:</strong> <code>analysis_types</code>.</li>
+<li><strong>Returns route labels:</strong> <code>expiry_risk</code>, <code>shortage_risk</code>, <code>oversupply_risk</code>, <code>claim_risk</code>, <code>redistribution_risk</code>, <code>demand_forecast_risk</code>, or <code>unsupported_analysis</code>.</li>
+<li><strong>Example:</strong> <code>['claims', 'forecast'] → ['claim_risk', 'demand_forecast_risk']</code>.</li>
+<li><strong>Important:</strong> Router and graph dictionaries must use the same route names. No <code>allocation_risk</code> route while Allocation is paused.</li>
+</ul>
+<h3>🟢 Node 4 — <code>expiry_risk</code></h3>
+<p><strong>File:</strong> <code>agent/expiryRisk.py</code> · <strong>Type:</strong> Python inventory analysis.</p>
+<ul>
+<li><strong>Reads:</strong> <code>valid_expiry_stock</code> and other relevant master data <strong>as implemented locally</strong>.</li>
+<li><strong>Writes:</strong> <code>expiry_risks</code>.</li>
+<li><strong>Purpose:</strong> Identify stock at risk of expiring before it can be used/sold.</li>
+<li><strong>Example (illustrative only):</strong> A medicine batch expires soon but has high remaining on-hand stock; flag it for investigation.</li>
+<li><strong>Result in UI:</strong> Expiry table, risk-level filters and CSV download.</li>
+</ul>
+<p><strong>Verification needed:</strong> Exact expiry-risk threshold, consumption formula and severity bands were not available in inspected source; do not assume particular cutoffs without opening <code>agent/expiryRisk.py</code>.</p>
+<h3>🟢 Node 5 — <code>shortage_risk</code></h3>
+<p><strong>File:</strong> <code>agent/shortageRisk.py</code> · <strong>Type:</strong> Python inventory analysis.</p>
+<ul>
+<li><strong>Reads:</strong> <code>valid_shortage_stock</code> and any local rule inputs.</li>
+<li><strong>Writes:</strong> <code>shortage_results</code>.</li>
+<li><strong>Purpose:</strong> Detect where available stock may be insufficient for expected outward demand.</li>
+<li><strong>Result:</strong> Location/SKU shortage findings for the dashboard.</li>
+</ul>
+<p><strong>Verification needed:</strong> Exact lead-time, safety-stock and shortage formulas are determined by your local <code>agent/shortageRisk.py</code> and <code>agent/rules.py</code> if used.</p>
+<h3>🟢 Node 6 — <code>oversupply_risk</code></h3>
+<p><strong>File:</strong> <code>agent/oversupplyRisk.py</code> · <strong>Type:</strong> Python inventory analysis.</p>
+<ul>
+<li><strong>Reads:</strong> <code>valid_oversupply_stock</code> and applicable local rules.</li>
+<li><strong>Writes:</strong> <code>oversupply_risks</code>.</li>
+<li><strong>Purpose:</strong> Identify potentially excessive inventory relative to observed outward movement.</li>
+<li><strong>Result:</strong> Surplus-stock findings, location and SKU details.</li>
+</ul>
+<p><strong>Verification needed:</strong> Specific thresholds and formulas are not confirmed from the available file set.</p>
+<h3>🟢 Node 7 — <code>claim_risk</code> (expiry claims, settlement, duplicate/invalid)</h3>
+<p><strong>Local graph import:</strong> <code>agent.claimsAnalysisDuplicateInvalid</code> · <strong>Inspected implementation:</strong> <code>claimsAnalysis_duplicate_invalid.py</code>, exporting <code>claim_risk = expiry_claims_analysis</code>.</p>
+<ul>
+<li><strong>Reads:</strong> <code>claims</code>, <code>sales</code>, <code>batches</code>, <code>stockists</code>, <code>claim_emails</code> (also uses <code>analysis_date</code> and <code>claim_monitor_days</code> if supplied).</li>
+<li><strong>Writes:</strong> <code>claim_results</code>, <code>settlement_results</code>, <code>duplicate_invalid_claims</code>, <code>claim_summary</code>, <code>claim_warnings</code>.</li>
+<li><strong>Filters:</strong> Only <code>claim_type</code> = <strong>Expired</strong> or <strong>Near expiry</strong>.</li>
+<li><strong>Cross-checks:</strong> Stockist, invoice lines, SKU, batch, quantity, claimed expiry, credit note and related emails.</li>
+<li><strong>Duplicate signals:</strong> Repeated claim numbers or repeated combinations of stockist, SKU, batch, claimed quantity, invoice reference and claim type.</li>
+<li><strong>Invalid/incomplete signals:</strong> Invoice/batch/quantity discrepancies, missing references and evidence contradictions.</li>
+<li><strong>Settlement:</strong> Calculates elapsed days for credited claims when dates exist; ages pending cases against an as-of date. Pilot alert threshold: <strong>45 days</strong>.</li>
+<li><strong>Result:</strong> Detailed claim rows, settlement exceptions, duplicate/invalid review list, counts and warnings.</li>
+</ul>
+<p><strong>Not a decision engine:</strong> A duplicate flag <strong>does not prove fraud</strong>. Missing documentation <strong>does not automatically invalidate a claim</strong>. A claim passing evidence checks is <strong>not necessarily policy-approved</strong>. Verify official claim windows and contractual SLA before enforcing them.</p>
+<h3>🟢 Node 8 — <code>redistribution_risk</code> (slow redistribution investigation)</h3>
+<p><strong>Local graph import:</strong> <code>agent.redistrutionRisk</code> (spelling from your shared graph) · <strong>Inspected implementation:</strong> <code>redistributionRisk.py</code>.</p>
+<ul>
+<li><strong>Reads:</strong> <code>stock</code>, <code>batches</code>, <code>skus</code>; optionally <code>valid_shortage_stock</code> and <code>valid_oversupply_stock</code>.</li>
+<li><strong>Writes:</strong> <code>redistribution_results</code>, <code>redistribution_summary</code>, <code>redistribution_warnings</code>.</li>
+<li><strong>Does:</strong> Uses the latest available stock snapshot; looks for an understocked <strong>receiver C&amp;F</strong> and potential surplus of the same SKU elsewhere.</li>
+<li><strong>Scenario assumptions:</strong> 14-day redistribution period, 30-day receiver target, 60-day donor reserve and 30 days per month for converting monthly movement to daily movement.</li>
+<li><strong>Result:</strong> Affected C&amp;F–SKU locations and <em>scenario-based</em> uncovered demand; filters questionable stock records.</li>
+</ul>
+<p><strong>Critical:</strong> The data has no actual transfer request/approval/dispatch/receipt log. This node <strong>cannot measure actual transfer turnaround</strong> and <strong>does not make or authorize transfers</strong>. It is different from Allocation, which remains paused.</p>
+<h3>🟢 Node 9 — <code>demand_forecast_risk</code></h3>
+<p><strong>File:</strong> <code>agent/demandForecastRisk.py</code> · <strong>Type:</strong> Deterministic Python historical backtest.</p>
+<ul>
+<li><strong>Reads:</strong> <code>sales</code> (primary invoice records); optional <code>sku_code</code> and <code>cnf_code</code> filters.</li>
+<li><strong>Writes:</strong> <code>forecast_results</code>, <code>forecast_summary</code>, <code>forecast_warnings</code>.</li>
+<li><strong>Method:</strong> For each C&amp;F/SKU/month, predict primary invoiced packs using the <strong>previous three calendar months' average</strong>; compare against actual invoices for recent completed months.</li>
+<li><strong>Measures:</strong> Error in packs, absolute percentage error, <strong>WAPE</strong>, bias, error direction, high/critical error count and scheme-associated invoice share.</li>
+<li><strong>Pilot severity thresholds:</strong> <strong>High at 25%</strong> and <strong>Critical at 50%</strong> absolute percentage error for nonzero actuals; separate handling when actuals are zero.</li>
+<li><strong>Result:</strong> C&amp;F × SKU × month comparisons, trend chart, downloadable CSV and caveats.</li>
+</ul>
+<p><strong>Critical:</strong> This is a <em>baseline versus primary invoicing</em>, <strong>not</strong> the company's official forecast accuracy and <strong>not</strong> final customer demand. Quarterly schemes may affect invoicing without proving a change in underlying demand.</p>
+<h3>🟠 Exception node — <code>unsupported_analysis</code></h3>
+<ul>
+<li><strong>Runs when:</strong> The router has no supported analysis to execute.</li>
+<li><strong>Writes:</strong> <code>error</code>.</li>
+<li><strong>Then:</strong> Goes directly to <code>END</code>, without normal analysis/recommendations.</li>
+</ul>
+<h3>🟣 Node 10 — <code>combine_results</code></h3>
+<p><strong>File:</strong> <code>agent/combineResults.py</code> · <strong>Type:</strong> Plain Python aggregation.</p>
+<ul>
+<li><strong>Reads:</strong> Selected analysis names plus the output lists for each selected branch.</li>
+<li><strong>Writes:</strong> <code>inventory_findings</code>.</li>
+<li><strong>Current agreed design:</strong> One item per selected risk with <code>risk_type</code>, <code>total_records</code>, and <code>results</code>.</li>
+</ul>
+<pre><code class="language-python">{
+    &quot;risk_type&quot;: &quot;claims&quot;,
+    &quot;total_records&quot;: 2,
+    &quot;results&quot;: [{&quot;claim_no&quot;: &quot;EXAMPLE-1&quot;}, {&quot;claim_no&quot;: &quot;EXAMPLE-2&quot;}]
+}
+</code></pre>
+<p><em>Example data above is fabricated for teaching, not a real claim.</em></p>
+<p><strong>Important:</strong> The recent six-analysis version combines <code>claim_results</code>, but <strong>not necessarily</strong> the separate <code>settlement_results</code> and <code>duplicate_invalid_claims</code>; these remain in state and should be included explicitly in the LLM's compact claim summary when needed. Combining full lists is acceptable for processing, <strong>not</strong> for sending directly to the LLM.</p>
+<h3>🟣 Node 11 — <code>financial_impact</code></h3>
+<p><strong>File:</strong> <code>agent/financialImpact.py</code> · <strong>Function in your graph:</strong> <code>calculate_financial_impact</code>.</p>
+<ul>
+<li><strong>Reads:</strong> Existing risk results and PTS prices / <code>skus</code>, depending on your implementation.</li>
+<li><strong>Writes:</strong> <code>financial_impact</code>.</li>
+<li><strong>Known dashboard contract:</strong> <code>financial_impact['by_risk'][risk]['exposure_inr']</code> for <code>expiry</code>, <code>shortage</code>, <code>oversupply</code> where calculated.</li>
+<li><strong>Displays:</strong> Expiry Exposure, Potential Sales at Risk, Excess Inventory Value.</li>
+<li><strong>Does not automatically do:</strong> Financial calculations for Claims, Redistribution or Forecast merely because they are connected to <code>combine_results</code>.</li>
+</ul>
+<p><strong>Verify locally:</strong> Exact formulas, coverage and missing-PTS behavior in <code>agent/financialImpact.py</code>. Exposure is <strong>not realized savings</strong>.</p>
+<h3>🟪 Node 12 — <code>recommendation_agent</code> — the LLM node</h3>
+<p><strong>File:</strong> <code>agent/recommendationAgent.py</code> · <strong>Type:</strong> LLM + Pydantic structured output.</p>
+<ul>
+<li><strong>Reads:</strong> Selected analysis summaries, bounded sample evidence, and existing financial totals <strong>after the recent token-limit fix</strong>.</li>
+<li><strong>Writes:</strong> <code>recommendations</code>, each with <code>risk_type</code>, <code>priority</code>, <code>issue</code>, <code>suggested_action</code>, <code>business_benefit</code>.</li>
+<li><strong>Reason for change:</strong> Your previous prompt sent every combined record as <code>json.dumps(findings)</code>, resulting in a <strong>806,635-token</strong> request to a <strong>128,000-token</strong> model.</li>
+<li><strong>New principle:</strong> Keep all rows for Python and Streamlit; send <strong>only concise summaries and limited examples</strong> to the LLM.</li>
+<li><strong>Safeguards:</strong> No invented SKU/batch/amount/date, no automatic claims rejection or stock transfer, no fabricated benefits.</li>
+</ul>
+<p><strong>LLM recommendations are suggestions</strong> and should be reviewed by responsible business teams.</p>
+<h3>🟪 Node 13 — <code>final_response</code></h3>
+<p><strong>File:</strong> <code>agent/finalResponse.py</code> · <strong>Type:</strong> Final presentation/response assembly (inspect implementation to confirm any LLM use).</p>
+<ul>
+<li><strong>Likely reads:</strong> <code>inventory_findings</code>, <code>recommendations</code>, <code>financial_impact</code> and error/warning fields as coded locally.</li>
+<li><strong>Writes:</strong> <code>final_answer</code>.</li>
+<li><strong>Purpose:</strong> Prepare the final human-readable result.</li>
+<li><strong>Safety:</strong> If it uses an LLM, give it a <strong>compact summary</strong>, never the full state or all CSV records.</li>
+</ul>
+<p><strong>Verification needed:</strong> Exact implementation was not directly available to inspect.</p>
+<hr />
+<h2>🗃️ 5. State fields: who writes and reads them</h2>
+<p>Think of <code>PharmaState</code> as a <strong>shared notebook</strong>. Each node writes its output into a named section; later nodes can read it.</p>
+<table>
+<thead>
+<tr>
+  <th>Field(s)</th>
+  <th>Main producer</th>
+  <th>Main consumer</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>user_query</code>, <code>analysis_types</code></td>
+  <td>Streamlit input; <code>understand_query</code> updates selection</td>
+  <td><code>understand_query</code>, <code>query_router</code>, aggregators</td>
+</tr>
+<tr>
+  <td><code>stock</code>, <code>claims</code>, <code>sales</code>, <code>stockists</code>, <code>skus</code>, <code>batches</code>, <code>claim_emails</code></td>
+  <td><code>load_data</code></td>
+  <td>Validator and risk nodes</td>
+</tr>
+<tr>
+  <td><code>valid_expiry_stock</code>, <code>valid_shortage_stock</code>, <code>valid_oversupply_stock</code></td>
+  <td><code>validate_stock</code></td>
+  <td>Corresponding inventory nodes; redistribution where used</td>
+</tr>
+<tr>
+  <td><code>invalid_stock</code>, <code>validation_summary</code></td>
+  <td><code>validate_stock</code></td>
+  <td>Streamlit Data Quality tab</td>
+</tr>
+<tr>
+  <td><code>expiry_risks</code></td>
+  <td><code>expiry_risk</code></td>
+  <td><code>combine_results</code>, finance/UI</td>
+</tr>
+<tr>
+  <td><code>shortage_results</code></td>
+  <td><code>shortage_risk</code></td>
+  <td><code>combine_results</code>, finance/UI</td>
+</tr>
+<tr>
+  <td><code>oversupply_risks</code></td>
+  <td><code>oversupply_risk</code></td>
+  <td><code>combine_results</code>, finance/UI</td>
+</tr>
+<tr>
+  <td><code>claim_results</code>, <code>settlement_results</code>, <code>claim_summary</code>, <code>claim_warnings</code>, <code>duplicate_invalid_claims</code></td>
+  <td><code>claim_risk</code></td>
+  <td>Streamlit and compact recommendations</td>
+</tr>
+<tr>
+  <td><code>redistribution_results</code>, <code>redistribution_summary</code>, <code>redistribution_warnings</code></td>
+  <td><code>redistribution_risk</code></td>
+  <td>Streamlit and compact recommendations</td>
+</tr>
+<tr>
+  <td><code>forecast_results</code>, <code>forecast_summary</code>, <code>forecast_warnings</code></td>
+  <td><code>demand_forecast_risk</code></td>
+  <td>Streamlit and compact recommendations</td>
+</tr>
+<tr>
+  <td><code>inventory_findings</code></td>
+  <td><code>combine_results</code></td>
+  <td>Recommendations, downstream reports if configured</td>
+</tr>
+<tr>
+  <td><code>financial_impact</code></td>
+  <td><code>calculate_financial_impact</code></td>
+  <td>Streamlit, recommendations</td>
+</tr>
+<tr>
+  <td><code>recommendations</code></td>
+  <td><code>recommendation_agent</code></td>
+  <td>Streamlit, <code>final_response</code></td>
+</tr>
+<tr>
+  <td><code>messages</code></td>
+  <td>Only nodes that explicitly use message history</td>
+  <td>LLM nodes if wired</td>
+</tr>
+<tr>
+  <td><code>final_answer</code></td>
+  <td><code>final_response</code></td>
+  <td>Caller/UI if displayed</td>
+</tr>
+<tr>
+  <td><code>error</code></td>
+  <td><code>unsupported_analysis</code> or other error-producing nodes</td>
+  <td>Streamlit</td>
+</tr>
+<tr>
+  <td><code>data_warnings</code></td>
+  <td>Only if explicitly written by code</td>
+  <td>UI/agent if used</td>
+</tr>
+<tr>
+  <td><code>sku_code</code>, <code>batch_no</code>, <code>cnf_code</code></td>
+  <td>Optional request filters</td>
+  <td>Nodes that implement filters</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Do not duplicate <code>recommendations</code> in <code>PharmaState</code>.</strong> <code>allocation_findings</code>, <code>valid_allocation_stock</code>, and other Allocation-specific fields are dormant while the feature is disabled. Removing them is optional <strong>only after checking that active code does not reference them</strong>.</p>
+<h3>Input data and their fields</h3>
+<p>These are the headers directly observed in the supplied CSV files:</p>
+<table>
+<thead>
+<tr>
+  <th>File</th>
+  <th>Important columns</th>
+  <th>Used for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><code>cnf_stock_snapshot.csv</code></td>
+  <td><code>snapshot_date</code>, <code>cnf_code</code>, <code>cnf_city</code>, <code>sku_code</code>, <code>batch_no</code>, <code>expiry_date</code>, <code>qty_on_hand_packs</code>, <code>avg_monthly_outward_packs</code></td>
+  <td>Stock validation, inventory risk, redistribution</td>
+</tr>
+<tr>
+  <td><code>batch_master.csv</code></td>
+  <td><code>batch_no</code>, <code>sku_code</code>, <code>mfg_date</code>, <code>expiry_date</code>, <code>batch_qty_packs</code></td>
+  <td>Batch/expiry reference</td>
+</tr>
+<tr>
+  <td><code>sku_master.csv</code></td>
+  <td><code>sku_code</code>, <code>product_description</code>, <code>pts_inr</code>, <code>mrp_inr</code>, <code>shelf_life_months</code></td>
+  <td>Product lookup and valuation</td>
+</tr>
+<tr>
+  <td><code>stockist_master.csv</code></td>
+  <td><code>stockist_code</code>, <code>cnf_code</code>, <code>city</code>, <code>state</code>, <code>gstin</code></td>
+  <td>Claims, stockist-to-C&amp;F link</td>
+</tr>
+<tr>
+  <td><code>primary_sales.csv</code></td>
+  <td><code>invoice_no</code>, <code>invoice_date</code>, <code>cnf_code</code>, <code>stockist_code</code>, <code>sku_code</code>, <code>batch_no</code>, <code>invoiced_qty</code>, <code>scheme_code</code>, <code>net_value_inr</code></td>
+  <td>Claim-invoice evidence, primary invoice forecast backtest</td>
+</tr>
+<tr>
+  <td><code>expiry_claims(1).csv</code></td>
+  <td><code>claim_no</code>, <code>claim_date</code>, <code>stockist_code</code>, <code>sku_code</code>, <code>batch_no</code>, <code>qty_claimed</code>, <code>original_invoice_ref</code>, <code>status</code>, <code>credit_note_date</code></td>
+  <td>Claim checks, settlement duration</td>
+</tr>
+<tr>
+  <td><code>claim_emails.csv</code></td>
+  <td><code>email_id</code>, <code>received_date</code>, <code>stockist_code_by_mailbox_rule</code>, <code>subject</code>, <code>body</code></td>
+  <td>Supporting correspondence</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Heads-up:</strong> <code>primary_sales.csv</code> uses <strong><code>invoiced_qty</code></strong>, not <code>qty_packs</code>; <code>expiry_claims(1).csv</code> uses <strong><code>claim_no</code></strong> and <strong><code>qty_claimed</code></strong>, not <code>claim_id</code> and <code>claim_qty_packs</code>. Column names in your loader must match your actual files.</p>
+</blockquote>
+<hr />
+<h2>📐 6. How each analysis works</h2>
+<p>The examples below are <strong>simplified teaching examples</strong> unless labeled as exact implemented rules.</p>
+<h3>A. Inventory expiry</h3>
+<p><strong>Question:</strong> Could packs expire before they are consumed?<br />
+<strong>Typical inputs:</strong> Quantity, expiry date, outward demand.<br />
+<strong>Output:</strong> <code>expiry_risks</code> with locations/batches requiring attention.<br />
+<strong>Business action:</strong> Verify current on-hand and eligibility; investigate returns or other approved actions.<br />
+<strong>Exact threshold:</strong> Confirm from <code>expiryRisk.py</code>.</p>
+<h3>B. Inventory shortage</h3>
+<p><strong>Question:</strong> Is there enough stock to cover expected demand?<br />
+<strong>Typical inputs:</strong> Available packs, historical outward movement, replenishment assumptions.<br />
+<strong>Output:</strong> <code>shortage_results</code>.<br />
+<strong>Business action:</strong> Review demand and replenishment with the responsible location.<br />
+<strong>Exact formula:</strong> Confirm from <code>shortageRisk.py</code>.</p>
+<h3>C. Inventory oversupply</h3>
+<p><strong>Question:</strong> Is stock materially above expected needs?<br />
+<strong>Typical inputs:</strong> Available packs, outward movement and any reserve rule.<br />
+<strong>Output:</strong> <code>oversupply_risks</code>.<br />
+<strong>Business action:</strong> Investigate slow-moving inventory and avoid further unnecessary shipments.<br />
+<strong>Exact formula:</strong> Confirm from <code>oversupplyRisk.py</code>.</p>
+<h3>D. Expiry claims and settlement — verified implemented logic</h3>
+<pre><code class="language-text">Claims CSV
+  → Select Expired / Near expiry
+  → Match stockist, batch and invoice evidence
+  → Detect repeated claim numbers / repeated claim details
+  → Inspect claimed quantities and credit note details
+  → Compute credited settlement duration / pending age
+  → Produce claim_results, settlement_results, duplicate_invalid_claims
+</code></pre>
+<p><strong>Settlement formulas:</strong></p>
+<ul>
+<li>Credited case: <code>settlement_days = credit_note_date − claim_date</code>, where both dates exist.</li>
+<li>Pending case: <code>age_days = as_of_date − claim_date</code>, where valid.</li>
+<li>Pilot overdue alert: duration <strong>over 45 days</strong>. This is <strong>not confirmed policy</strong>.</li>
+</ul>
+<p><strong>Examples of output:</strong> <code>claim_summary.total_claim_rows</code>, <code>pending_rows</code>, <code>pending_over_threshold_rows</code>, <code>delayed_credited_rows</code>, <code>average_settlement_days</code>, <code>potential_duplicate_rows</code>.</p>
+<h3>E. Redistribution delay — verified implemented scenario</h3>
+<pre><code class="language-text">Latest stock snapshot
+  → Compare C&amp;F/SKU stock vs monthly outward movement
+  → Identify potential receiver gap and another C&amp;F's surplus
+  → Estimate uncovered demand in a hypothetical 14-day period
+  → Report affected locations and warnings
+</code></pre>
+<p><strong>Scenario parameters:</strong> receiver target 30 days, donor reserve 60 days, month length 30 days, redistribution scenario 14 days.</p>
+<p><strong>Teaching example:</strong> If a location has 500 packs, needs 100 packs/day and waits a hypothetical 14 days, uncovered demand under those fixed assumptions is <code>max(0, 100 × 14 − 500) = 900 packs</code> <strong>before considering any other replenishment</strong>. That is not a measured loss.</p>
+<h3>F. Demand forecast accuracy — verified implemented baseline</h3>
+<pre><code class="language-text">Primary invoice records
+  → Sum invoiced packs per C&amp;F + SKU + month
+  → Forecast a month from the three prior calendar months
+  → Compare estimate with invoiced packs
+  → Calculate errors, WAPE, bias and severity
+  → Show month/SKU/location exceptions
+</code></pre>
+<ul>
+<li><strong>Forecast:</strong> <code>(previous month 1 + previous month 2 + previous month 3) ÷ 3</code>.</li>
+<li><strong>Error:</strong> <code>baseline_forecast − actual_primary_invoiced</code>.</li>
+<li><strong>WAPE:</strong> <code>100 × sum(abs(error)) ÷ sum(actual_primary_invoiced)</code> when total actual is positive.</li>
+<li><strong>Bias:</strong> <code>100 × sum(error) ÷ sum(actual_primary_invoiced)</code> when total actual is positive.</li>
+<li><strong>High / Critical:</strong> pilot absolute-percentage thresholds 25% / 50% for nonzero actuals.</li>
+</ul>
+<p><strong>Teaching example:</strong> Prior months 100, 120, 140 packs → baseline 120. This month invoices 150 → error <code>−30</code> packs and absolute percentage error <code>20%</code>. It is an invoice-backtest difference, <strong>not proof of unmet customer demand</strong>.</p>
+<hr />
+<h2>🤝 7. Combining, financial impact and AI recommendations</h2>
+<h3>Why <code>combine_results</code> exists</h3>
+<p>Each risk node returns its own result list. <code>combine_results</code> builds a consistent report envelope:</p>
+<pre><code class="language-python">{
+    &quot;inventory_findings&quot;: [
+        {&quot;risk_type&quot;: &quot;expiry&quot;, &quot;total_records&quot;: 10, &quot;results&quot;: [&quot;...details...&quot;]},
+        {&quot;risk_type&quot;: &quot;claims&quot;, &quot;total_records&quot;: 25, &quot;results&quot;: [&quot;...details...&quot;]}
+    ]
+}
+</code></pre>
+<p><strong>Illustrative structure only:</strong> The counts and placeholder strings are not real results. <code>inventory_findings</code> can be very large because <code>results</code> contains the full records.</p>
+<h3>Why <code>financial_impact</code> is separate</h3>
+<p>Python should calculate financial exposure based on data and rules; the LLM should <strong>not invent amounts</strong>. The current dashboard expects totals for the three existing inventory risks. Do not sum redistribution inventory values or claim amounts as savings without a verified business rule.</p>
+<h3>Why the LLM must receive a summary instead of full data</h3>
+<pre><code class="language-mermaid">flowchart LR
+    A[Full Python analysis results] --&gt; B[Streamlit tables and CSV]
+    A --&gt; C[Compact evidence builder]
+    C --&gt; D[recommendation_agent LLM]
+    D --&gt; E[Structured recommendations]
+    classDef data fill:#DBEAFE,stroke:#2563EB;
+    classDef llm fill:#F3E8FF,stroke:#9333EA;
+    class A,B,C data;
+    class D,E llm;
+</code></pre>
+<p>The original agent directly serialized <code>inventory_findings</code> into an LLM message, causing a <strong>context-length error (~806,635 requested tokens versus 128,000 supported)</strong>. The revised approach sends bounded counts, summaries, and a few example rows instead. Full records still remain available to Streamlit.</p>
+<p><strong>Structured recommendation fields:</strong> <code>risk_type</code>, <code>priority</code> (HIGH/MEDIUM/LOW), <code>issue</code>, <code>suggested_action</code>, <code>business_benefit</code>. Supported types: <code>expiry</code>, <code>shortage</code>, <code>oversupply</code>, <code>claims</code>, <code>redistribution</code>, <code>forecast</code>.</p>
+<hr />
+<h2>🖥️ 8. The Streamlit dashboard</h2>
+<p><strong>File:</strong> <code>streamlit_app.py</code> · <strong>Entry point:</strong> <code>workflow.invoke({'user_query': ..., 'analysis_types': [...]})</code>.</p>
+<p>The available dashboard implementation shows:</p>
+<table>
+<thead>
+<tr>
+  <th>Section</th>
+  <th>What a stakeholder sees</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><strong>Select Inventory Risks</strong></td>
+  <td>Multi-select for six active analyses; Allocation intentionally hidden</td>
+</tr>
+<tr>
+  <td><strong>Inventory Overview</strong></td>
+  <td>Stock record count, validation issues, number of selected analyses, recommendation count</td>
+</tr>
+<tr>
+  <td><strong>Financial Risk Impact</strong></td>
+  <td>Three inventory exposure metrics where calculated; bar chart</td>
+</tr>
+<tr>
+  <td><strong>Expiry / Shortage / Oversupply</strong></td>
+  <td>Result tables, risk-level filters, CSV downloads</td>
+</tr>
+<tr>
+  <td><strong>Expiry Claims &amp; Settlement</strong></td>
+  <td>Claim counts, pending/overdue settlement, duplicate/invalid review flags, exported exceptions</td>
+</tr>
+<tr>
+  <td><strong>Redistribution Delay</strong></td>
+  <td>Affected C&amp;F/SKU pairs, hypothetical uncovered demand, assumptions and data-quality warnings</td>
+</tr>
+<tr>
+  <td><strong>Demand Forecast Accuracy</strong></td>
+  <td>WAPE, bias, high-error comparisons, monthly trend, export</td>
+</tr>
+<tr>
+  <td><strong>Recommendations</strong></td>
+  <td>LLM-generated structured action suggestions</td>
+</tr>
+<tr>
+  <td><strong>Data Quality</strong></td>
+  <td>Stock validation problems and downloadable invalid rows</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Color key</strong> used in risk tables (where a severity column exists):</p>
+<ul>
+<li>🔴 <strong>CRITICAL</strong> — needs urgent investigation.</li>
+<li>🟠 <strong>HIGH</strong> — important investigation.</li>
+<li>🟡 <strong>MEDIUM</strong> — monitor and prioritize appropriately.</li>
+<li>🟢 <strong>LOW</strong> — lower immediate attention.</li>
+<li>⚪ <strong>UNKNOWN</strong> — severity missing/unknown.</li>
+</ul>
+<p>Color is a display aid, <strong>not a policy approval or proof of financial loss</strong>.</p>
+<hr />
+<h2>▶️ 9. Run and test the application</h2>
+<h3>Expected project organization</h3>
+<pre><code class="language-text">project-sankalp/
+├── agent/
+│   ├── graph.py
+│   ├── state.py
+│   ├── understandQuery.py
+│   ├── queryRouter.py
+│   ├── loadData.py
+│   ├── validateStock.py
+│   ├── expiryRisk.py
+│   ├── shortageRisk.py
+│   ├── oversupplyRisk.py
+│   ├── claimsAnalysisDuplicateInvalid.py
+│   ├── redistrutionRisk.py        # spelling in user's current import
+│   ├── demandForecastRisk.py
+│   ├── combineResults.py
+│   ├── financialImpact.py
+│   ├── recommendationAgent.py
+│   ├── finalResponse.py
+│   └── llm.py
+├── data/                         # CSV files; loader paths must match
+├── streamlit_app.py
+└── README.md
+</code></pre>
+<p><strong>The directory tree is an intended layout based on imports</strong>, not a verified listing of your local repository. The redistribution filename <code>redistrutionRisk.py</code> is spelled exactly as in your shared graph; rename the import and file together if you standardize it.</p>
+<h3>Windows PowerShell</h3>
+<pre><code class="language-powershell"># Activate your existing virtual environment (adjust its folder name)
+.\.venv\Scripts\Activate.ps1
+
+# Run automated tests
+python -m pytest -q
+
+# Start the UI
+python -m streamlit run streamlit_app.py
+</code></pre>
+<p>Set up LLM API credentials in your <strong>local <code>.env</code> or deployment secrets</strong>, never in the README or committed files. Follow the existing <code>agent/llm.py</code> provider configuration; the exact required key names depend on your project setup.</p>
+<h3>Quick test sequence</h3>
+<ol>
+<li>Select <strong>Expiry only</strong> → verify <code>expiry_risks</code> and its table.</li>
+<li>Select <strong>Claims only</strong> → verify <code>claim_results</code>, <code>claim_summary</code>, duplicate/invalid review, settlement exceptions.</li>
+<li>Select <strong>Redistribution only</strong> → confirm latest snapshot, scenario label and warnings.</li>
+<li>Select <strong>Forecast only</strong> → verify <code>forecast_results</code>, summary, WAPE and trend.</li>
+<li>Select <strong>all six</strong> → confirm the six analyses complete and the LLM recommendation request stays small.</li>
+</ol>
+<p><strong>Do not put <code>workflow.invoke(...)</code> unguarded at the bottom of <code>agent/graph.py</code></strong>: Streamlit importing <code>workflow</code> would trigger an extra analysis. Put standalone tests in <code>debug_graph.py</code> or behind <code>if __name__ == '__main__':</code>.</p>
+<hr />
+<h2>🛠️ 10. Examples, warnings and troubleshooting</h2>
+<table>
+<thead>
+<tr>
+  <th>Symptom</th>
+  <th>Likely place to inspect</th>
+  <th>First check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>No results for Claims</td>
+  <td><code>understandQuery.py</code>, <code>queryRouter.py</code></td>
+  <td>Use selection key <code>claims</code>, not <code>claim</code></td>
+</tr>
+<tr>
+  <td>No results for Forecast</td>
+  <td>Router and <code>state.py</code></td>
+  <td>Use <code>forecast</code>, not <code>demand_forecast</code>; declare <code>forecast_*</code> fields</td>
+</tr>
+<tr>
+  <td>Financial amounts not shown</td>
+  <td><code>financialImpact.py</code>, Streamlit</td>
+  <td>Check <code>financial_impact.by_risk.&lt;risk&gt;.exposure_inr</code></td>
+</tr>
+<tr>
+  <td>API error: 128k limit</td>
+  <td><code>recommendationAgent.py</code>, maybe <code>finalResponse.py</code></td>
+  <td>Do <strong>not</strong> send full <code>inventory_findings</code> or <code>state</code> to LLM</td>
+</tr>
+<tr>
+  <td>Settlement marked delayed</td>
+  <td>Claims rule and reporting date</td>
+  <td>Check available credit-note date or as-of date; 45 days is a pilot threshold</td>
+</tr>
+<tr>
+  <td>Duplicate claim flagged</td>
+  <td>Claim evidence / matching</td>
+  <td>Review invoice, claim and batch; flag is not fraud proof</td>
+</tr>
+<tr>
+  <td>Redistribution amount looks like actual loss</td>
+  <td><code>redistributionRisk.py</code> / Streamlit</td>
+  <td>It is a <strong>14-day scenario</strong> with no transfer log</td>
+</tr>
+<tr>
+  <td>Forecast error seems unexpected</td>
+  <td><code>demandForecastRisk.py</code></td>
+  <td>Compare with primary invoices; scheme codes may affect them</td>
+</tr>
+<tr>
+  <td><code>ImportError</code> in redistribution</td>
+  <td>Local filename and graph import</td>
+  <td><code>redistrutionRisk</code> vs <code>redistributionRisk</code> spelling</td>
+</tr>
+<tr>
+  <td>No recommendations</td>
+  <td>Recommendation agent and input context</td>
+  <td>Inspect compact summary and model errors</td>
+</tr>
+</tbody>
+</table>
+<h3>Assumptions versus data quality</h3>
+<p><strong>Assumption:</strong> A chosen pilot rule, such as 45-day claims alert or 14-day redistribution scenario.<br />
+<strong>Data quality issue:</strong> Missing, outdated or contradictory evidence, such as an invalid expiry date or missing claim invoice reference.</p>
+<p>The dashboard displays warnings to help stakeholders interpret results correctly.</p>
+<hr />
+<h2>🛡️ 11. Limitations, safeguards and future work</h2>
+<h3>What is implemented / supported</h3>
+<ul>
+<li>✅ Existing graph routes to <strong>six</strong> active analyses.</li>
+<li>✅ Deterministic, evidence-based checks for claims, redistribution screening, and forecast backtesting in the inspected files.</li>
+<li>✅ Streamlit offers analysis tables, warnings and downloadable data.</li>
+<li>✅ The revised recommendation design avoids passing entire datasets to the LLM.</li>
+<li>✅ <strong>Allocation remains disabled by choice</strong>.</li>
+</ul>
+<h3>What must not be misrepresented</h3>
+<ul>
+<li>⚠️ A flagged duplicate is <strong>not</strong> proof of fraud or duplicate payment.</li>
+<li>⚠️ A 45-day alert is <strong>not</strong> a verified settlement SLA.</li>
+<li>⚠️ The 14-day redistribution period is <strong>not</strong> measured transfer time.</li>
+<li>⚠️ Forecast baseline WAPE is <strong>not</strong> official company forecast accuracy.</li>
+<li>⚠️ Risk exposure is <strong>not</strong> actual financial loss or achieved savings.</li>
+<li>⚠️ Recommendations are <strong>not</strong> authorization to transfer medicines or settle claims.</li>
+</ul>
+<h3>Next development phases</h3>
+<ol>
+<li>Verify official claim/return policy terms and move approved thresholds into <code>agent/rules.py</code> with tests.</li>
+<li>Add actual forecast submissions and secondary-sales data to distinguish forecast error from primary shipment distortion.</li>
+<li>Add transfer request, approval, dispatch and receipt events to measure true redistribution turnaround.</li>
+<li>Implement <strong>Inventory Allocation</strong> last, as planned, with approval and batch-eligibility safeguards.</li>
+<li>Verify local implementations of <code>expiryRisk.py</code>, <code>shortageRisk.py</code>, <code>oversupplyRisk.py</code>, <code>financialImpact.py</code> and <code>finalResponse.py</code> against this README.</li>
+</ol>
+<hr />
+<div align="center">
+
+<h3>🎓 How to explain this project in an interview</h3>
+<blockquote>
+<p>“I built a LangGraph-based pharmaceutical risk-intelligence application. It loads and validates source data, routes selected risk checks through deterministic Python nodes, combines the results, calculates supported financial exposure, and uses an LLM only for concise, evidence-grounded recommendations. Streamlit displays detailed evidence and warnings. The application highlights exceptions for business review; it does not automate stock transfers or claim decisions.”</p>
+</blockquote>
+<p><strong>Project Sankalp · PharmaGuard AI</strong><br />
+<em>Data → Validation → Risk Analysis → Financial Exposure → Recommendations → Business Review</em></p>
+</div>
+
+<p class="foot">Styled companion to README.md. Keep README.md as the canonical GitHub documentation.</p></main></body></html>
