@@ -24,7 +24,8 @@ RISK_OPTIONS = {
     "Expiry": "expiry",
     "Oversupply": "oversupply",
     "Expiry Claims & Settlement": "claims",
-    "Redistribution Delay": "redistribution"
+    "Redistribution Delay": "redistribution",
+    "Demand Forecast Accuracy": "forecast"
 }
 
 RESULT_KEYS = {
@@ -32,7 +33,8 @@ RESULT_KEYS = {
     "expiry": "expiry_risks",
     "oversupply": "oversupply_risks",
     "claims": "claim_results",
-    "redistribution": "redistribution_results"
+    "redistribution": "redistribution_results",
+    "forecast": "forecast_results"
 }
 
 VALIDATION_KEYS = {
@@ -52,7 +54,8 @@ RISK_COLUMNS = {
         "oversupply_risk", "risk_level", "risk"
     ],
     "claims": [],
-    "redistribution": []
+    "redistribution": [],
+    "forecast": ["risk_level"]
 }
 
 RISK_COLORS = {
@@ -446,6 +449,78 @@ def show_redistribution_summary(result):
 
 
 # ============================================================
+# DEMAND FORECAST ACCURACY (HISTORICAL PRIMARY-SALES PROXY)
+# ============================================================
+
+def show_demand_forecast_summary(result):
+    st.header("Inaccurate Demand Forecasting — Baseline Backtest")
+    st.caption(
+        "This compares a simple previous-three-month forecast with actual primary "
+        "invoiced packs. It does not measure the company's official forecast accuracy "
+        "or genuine secondary/customer demand."
+    )
+    rows = result.get("forecast_results")
+    summary = result.get("forecast_summary") or {}
+    if rows is None:
+        st.error("Forecast results missing from LangGraph. Check state declaration and routing.")
+        return
+
+    if summary.get("reason"):
+        st.warning(f"Cannot backtest: {summary['reason']}")
+    c1, c2, c3, c4 = st.columns(4)
+    wape = summary.get("wape_pct")
+    bias = summary.get("bias_pct")
+    c1.metric("Baseline WAPE", f"{wape:.2f}%" if wape is not None else "N/A")
+    c2.metric("Baseline Bias", f"{bias:+.2f}%" if bias is not None else "N/A")
+    c3.metric("High / Critical Months", summary.get("large_error_rows", 0))
+    c4.metric("C&F × SKU × Months", summary.get("evaluated_cnf_sku_months", 0))
+    st.caption(
+        f"Backtest window: {summary.get('first_backtest_month', 'N/A')} to "
+        f"{summary.get('last_backtest_month', 'N/A')} | "
+        "WAPE = total absolute errors / total invoiced packs. "
+        "Positive bias means over-forecasting."
+    )
+
+    if rows:
+        df = clean_table(rows)
+        levels = sorted(df["risk_level"].dropna().astype(str).unique().tolist())
+        chosen = st.multiselect(
+            "Filter forecast-risk severity", levels, default=levels,
+            key="forecast_risk_levels"
+        )
+        filtered = df[df["risk_level"].isin(chosen)]
+        st.subheader("Forecast-versus-primary-invoices by C&F, SKU and month")
+        st.dataframe(filtered, hide_index=True, width="stretch")
+        st.download_button(
+            "Download forecast backtest CSV",
+            data=filtered.to_csv(index=False).encode("utf-8"),
+            file_name="demand_forecast_backtest.csv", mime="text/csv",
+            key="forecast_export"
+        )
+        # Keep aggregates separate from per-SKU percentage errors.
+        monthly = (
+            df.groupby("month", as_index=False)[
+                ["baseline_forecast_packs", "actual_primary_invoiced_packs"]
+            ].sum().sort_values("month")
+        )
+        st.subheader("Monthly primary invoicing vs historical baseline")
+        st.line_chart(
+            monthly.set_index("month")
+            [["baseline_forecast_packs", "actual_primary_invoiced_packs"]]
+        )
+        st.info(
+            "A large difference may reflect schemes, quarter-end shipments, "
+            "stock-outs, or genuine shifts in demand. Investigate before changing any plan."
+        )
+    else:
+        st.warning("No eligible primary-invoice backtest records for the selected filters.")
+    with st.expander("Forecast assumptions and data quality"):
+        for warning in result.get("forecast_warnings") or []:
+            st.warning(str(warning))
+        st.json(summary)
+
+
+# ============================================================
 # 7. PAGE HEADER
 # ============================================================
 
@@ -459,7 +534,7 @@ st.caption(
 
 st.markdown(
     "Analyze stock shortages, expiry exposure, oversupply, "
-    "expiry-claim settlement and redistribution bottlenecks across C&F locations."
+    "expiry-claim settlement, redistribution bottlenecks and demand forecasting across C&F locations."
 )
 
 # ============================================================
@@ -625,6 +700,10 @@ if result is not None:
 
     if "redistribution" in selected_risks:
         show_redistribution_summary(result)
+        st.divider()
+
+    if "forecast" in selected_risks:
+        show_demand_forecast_summary(result)
         st.divider()
 
     # --------------------------------------------------------

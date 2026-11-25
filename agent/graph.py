@@ -14,6 +14,7 @@ from agent.finalResponse import final_response
 from agent.financialImpact import calculate_financial_impact
 from agent.claimsAnalysisDuplicateInvalid import claim_risk
 from agent.redistrutionRisk import redistribution_risk
+from agent.demandForecastRisk import demand_forecast_risk
 
 
 # ============================================
@@ -35,6 +36,7 @@ graph.add_node("expiry_risk", expiry_risk)
 graph.add_node("oversupply_risk", oversupply_risk)
 graph.add_node("claim_risk", claim_risk)
 graph.add_node("redistribution_risk", redistribution_risk)
+graph.add_node("demand_forecast_risk", demand_forecast_risk)
 
 
 graph.add_node(
@@ -71,7 +73,8 @@ graph.add_conditional_edges(
         "expiry_risk": "expiry_risk",
         "oversupply_risk": "oversupply_risk",
         "claim_risk": "claim_risk",
-         "redistribution_risk": "redistribution_risk",
+        "redistribution_risk": "redistribution_risk",
+        "demand_forecast_risk": "demand_forecast_risk",
         "unsupported_analysis": "unsupported_analysis"
     }
 )
@@ -85,6 +88,7 @@ graph.add_edge("expiry_risk", "combine_results")
 graph.add_edge("oversupply_risk", "combine_results")
 graph.add_edge("claim_risk", "combine_results")
 graph.add_edge("redistribution_risk", "combine_results")
+graph.add_edge("demand_forecast_risk", "combine_results")
 # ============================================
 # 6. EXISTING DOWNSTREAM FLOW
 # ============================================
@@ -111,7 +115,8 @@ result = workflow.invoke({
         "expiry",
         "oversupply",
         "shortage",
-        "claim"
+        "claim",
+        "demand_forecast"
     ]
 })
 

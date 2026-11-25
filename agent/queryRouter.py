@@ -8,6 +8,7 @@ def query_router(state: PharmaState):
         "oversupply": "oversupply_risk",
         "claims": "claim_risk",
          "redistribution": "redistribution_risk",
+         "forecast": "demand_forecast_risk"
   
     }
 

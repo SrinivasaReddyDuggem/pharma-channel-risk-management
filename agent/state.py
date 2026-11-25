@@ -76,6 +76,12 @@ class PharmaState(TypedDict, total=False):
     redistribution_results: list[dict]
     redistribution_summary: dict
     redistribution_warnings: list[str]
+    
+    # Forecosted demand and supply analysis
+    forecast_results: list[dict]
+    forecast_summary: dict
+    forecast_warnings: list[str]
+
 
     # 9. Error handling
     error: str
