@@ -42,3 +42,5 @@ import the repository in Vercel, add `OPENROUTER_API_KEY` as an environment vari
 To Run the Application : 
 
 python -m streamlit run streamlit_app.py
+
+stream Lit app : URL : https://pharma-channel-risk-management-hrqcwknatvkfnrgqhrkkuj.streamlit.app/
